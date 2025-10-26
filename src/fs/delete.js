@@ -1,10 +1,14 @@
-import { unlink } from 'node:fs';
+import { promises as fs } from 'fs';
+
+const filePath = './src/fs/files/fileToRemove.txt';
 
 const remove = async () => {
-  unlink('./src/fs/files/fileToRemove.txt', (err) => {
-  if (err) throw err;
-  console.log('./src/fs/files/fileToRemove.txt');
-}); 
+try {
+  await fs.unlink(filePath);
+  console.log(`Deleted file: ${filePath}`);
+} catch (err) {
+  throw new Error('FS operation failed');
+}
 };
 
 await remove();
