@@ -1,5 +1,19 @@
+import { join } from 'path';
+import { promises as fs } from 'fs';
+
+const testFolder = './src/fs/files/';
+
 const list = async () => {
-  // Write your code here
+  try {
+    const filenames = await fs.readdir(testFolder);
+    console.log(filenames);
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      throw new Error("FS operation failed");
+    } else {
+      throw error;
+    }
+  }
 };
 
 await list();
