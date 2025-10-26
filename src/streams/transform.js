@@ -1,17 +1,20 @@
-import { createWriteStream } from 'fs';
+import { Transform } from 'stream';
 
 const transform = async () => {
-  const filePath = './src/streams/files/fileToWrite.txt';
-  const writeStream = createWriteStream(filePath, { encoding: 'utf8' });
+  const reverseStream = new Transform({
+    transform(chunk, encoding, callback) {
+      callback(null, chunk.toString().split('').reverse().join(''));
+    },
+  });
 
-  process.stdin.pipe(writeStream);
+  process.stdin.pipe(reverseStream).pipe(process.stdout);
 
   return new Promise((resolve, reject) => {
-    writeStream.on('finish', () => {
+    reverseStream.on('finish', () => {
       resolve();
     });
 
-    writeStream.on('error', (err) => {
+    reverseStream.on('error', (err) => {
       reject(err);
     });
   });
