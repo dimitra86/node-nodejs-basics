@@ -1,34 +1,52 @@
 import { sep } from 'path';
 import { release, version } from 'os';
 import { createServer as createServerHttp } from 'http';
+import { readFile, existsSync } from 'fs';
 
 import('./files/c.cjs');
 
 const random = Math.random();
 
-const unknownObject = random > 0.5 ? await import('./files/a.json') : await import('./files/b.json');
+const readJsonFile = async (filePath) => {
+  if (!existsSync(filePath)) {
+    console.log(`File not found: ${filePath}. Using default file instead.`);
+    return { default: 'default value' };
+  }
 
-console.log(`Release ${release()}`);
-console.log(`Version ${version()}`);
-console.log(`Path segment separator is "${sep}"`);
+  const data = await readFile(filePath, 'utf8');
+  return JSON.parse(data);
+};
 
-console.log(`Path to current file is ${import.meta.url}`);
-console.log(`Path to current directory is ${new URL('.', import.meta.url).pathname}`);
+let unknownObject;
+let myServer;
 
-const myServer = createServerHttp((_, res) => {
-  res.end('Request accepted');
-});
+try {
+  const filePath = random > 0.5 ? './files/a.json' : './files/b.json';
+  unknownObject = await readJsonFile(filePath);
+  console.log(`Release ${release()}`);
+  console.log(`Version ${version()}`);
+  console.log(`Path segment separator is "${sep}"`);
 
-const PORT = 3000;
+  console.log(`Path to current file is ${import.meta.url}`);
+  console.log(`Path to current directory is ${new URL('.', import.meta.url).pathname}`);
 
-console.log(unknownObject.default);
+  myServer = createServerHttp((_, res) => {
+    res.end('Request accepted');
+  });
 
-myServer.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT}`);
-  console.log('To terminate it, use Ctrl+C combination');
-});
+  const PORT = 3000;
+
+  myServer.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
+    console.log('To terminate it, use Ctrl+C combination');
+  });
+
+  console.log(unknownObject);
+} catch (err) {
+  console.error(err.message);
+}
 
 export default {
-  unknownObject: unknownObject.default,
+  unknownObject,
   myServer,
 };
